@@ -1,0 +1,589 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>🎰 幸運抽獎系統</title>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;700;900&family=Orbitron:wght@700;900&display=swap" rel="stylesheet">
+<style>
+*{box-sizing:border-box;margin:0;padding:0;}
+body{font-family:'Noto Sans TC',sans-serif;background:linear-gradient(160deg,#0d0d1a 0%,#1a1a3e 40%,#0d0d1a 100%);min-height:100vh;color:#fff;overflow-x:hidden;}
+@keyframes confettiFall{0%{transform:translateY(0) rotate(0deg);opacity:1}100%{transform:translateY(100vh) rotate(720deg);opacity:0}}
+@keyframes pulse{0%,100%{transform:scale(1)}50%{transform:scale(1.1)}}
+@keyframes floatIn{0%{transform:scale(0) rotate(-10deg);opacity:0}100%{transform:scale(1) rotate(0deg);opacity:1}}
+@keyframes glow{0%,100%{box-shadow:0 0 20px rgba(255,215,0,0.3)}50%{box-shadow:0 0 40px rgba(255,215,0,0.6),0 0 80px rgba(255,215,0,0.2)}}
+@keyframes shimmer{0%{background-position:-200% center}100%{background-position:200% center}}
+@keyframes bounceIn{0%{transform:scale(0);opacity:0}50%{transform:scale(1.15)}100%{transform:scale(1);opacity:1}}
+@keyframes screenShake{0%,100%{transform:translate(0,0)}10%{transform:translate(-8px,4px)}30%{transform:translate(-4px,8px)}50%{transform:translate(-6px,6px)}}
+@keyframes flashBang{0%{opacity:0}10%{opacity:0.9}100%{opacity:0}}
+@keyframes numberGlitch{0%{transform:skewX(0deg)}25%{transform:skewX(2deg)}50%{transform:skewX(-1deg)}75%{transform:skewX(1deg)}100%{transform:skewX(0deg)}}
+@keyframes spotlightSweep{0%{background:radial-gradient(circle at 30% 40%,rgba(255,215,0,0.08) 0%,transparent 60%)}50%{background:radial-gradient(circle at 70% 30%,rgba(255,100,100,0.08) 0%,transparent 60%)}100%{background:radial-gradient(circle at 30% 40%,rgba(255,215,0,0.08) 0%,transparent 60%)}}
+@keyframes slotGlow{0%,100%{text-shadow:0 0 10px rgba(255,255,255,0.3)}50%{text-shadow:0 0 30px rgba(255,255,255,0.8)}}
+@keyframes bubbleSway{0%,100%{transform:translateY(0)}25%{transform:translateY(-3px)}75%{transform:translateY(-2px)}}
+@keyframes ambientFloat{0%{transform:translateY(100vh) scale(0);opacity:0}10%{opacity:1}90%{opacity:1}100%{transform:translateY(-10vh) scale(1);opacity:0}}
+@keyframes toastIn{0%{transform:translateY(30px) scale(0.8);opacity:0}100%{transform:translateY(0) scale(1);opacity:1}}
+@keyframes toastOut{0%{opacity:1}100%{opacity:0;transform:translateY(-20px)}}
+@keyframes ballPop{0%{transform:scale(0)}50%{transform:scale(1.3)}70%{transform:scale(0.9)}100%{transform:scale(1)}}
+@keyframes energyRing{0%{transform:scale(0.8) rotate(0deg);opacity:0.3}50%{transform:scale(1.2) rotate(180deg);opacity:1}100%{transform:scale(0.8) rotate(360deg);opacity:0.3}}
+@keyframes energyRing2{0%{transform:scale(1.1) rotate(360deg);opacity:0.2}50%{transform:scale(0.9) rotate(180deg);opacity:0.7}100%{transform:scale(1.1) rotate(0deg);opacity:0.2}}
+@keyframes matchGlow{0%,100%{box-shadow:0 0 15px rgba(46,204,113,0.5)}50%{box-shadow:0 0 30px rgba(46,204,113,0.9)}}
+@keyframes marqueeScroll{0%{transform:translateX(0)}100%{transform:translateX(-50%)}}
+.view{display:none;}
+#landing{text-align:center;padding:32px;}
+#landing h1{font-size:42px;font-weight:900;margin:0 0 8px;background:linear-gradient(135deg,#FFD700,#FFA500,#FFD700);background-size:200% auto;-webkit-background-clip:text;-webkit-text-fill-color:transparent;animation:shimmer 3s linear infinite;}
+.role-cards{display:flex;gap:24px;justify-content:center;flex-wrap:wrap;}
+.role-card{background:rgba(255,255,255,0.04);border-radius:20px;padding:36px 40px;cursor:pointer;transition:all 0.3s;width:220px;text-align:center;}
+.role-card:hover{transform:translateY(-6px) scale(1.03);}
+.role-card.player{border:2px solid #4ECDC4;}.role-card.player:hover{box-shadow:0 12px 40px rgba(78,205,196,0.3);}
+.role-card.host{border:2px solid #FFD700;}.role-card.host:hover{box-shadow:0 12px 40px rgba(255,215,0,0.3);}
+.role-card h2{font-size:22px;font-weight:700;margin:12px 0 8px;}.role-card.player h2{color:#4ECDC4;}.role-card.host h2{color:#FFD700;}
+.role-card p{color:#999;font-size:13px;}
+.player-card{background:rgba(255,255,255,0.05);border-radius:24px;padding:36px 28px;width:100%;max-width:420px;backdrop-filter:blur(10px);border:1px solid rgba(255,255,255,0.08);display:flex;flex-direction:column;align-items:center;gap:14px;}
+.input-group{width:100%;display:flex;flex-direction:column;gap:6px;}
+.input-group label{color:#ccc;font-size:13px;font-weight:600;}
+.input-group input{background:rgba(255,255,255,0.06);border:1px solid rgba(255,255,255,0.15);border-radius:12px;padding:12px 16px;color:#fff;font-size:16px;outline:none;width:100%;font-family:inherit;}
+.input-group input:focus{border-color:#4ECDC4;}
+.join-btn{width:100%;padding:14px;border-radius:14px;border:none;background:linear-gradient(135deg,#4ECDC4,#44B7A8);color:#fff;font-size:18px;font-weight:700;cursor:pointer;font-family:inherit;}
+.join-btn:disabled{opacity:0.5;cursor:not-allowed;}
+.picker-row{display:flex;gap:10px;justify-content:center;flex-wrap:wrap;}
+.picker-slot{display:flex;flex-direction:column;align-items:center;gap:4px;}
+.picker-slot .arrow{width:40px;height:28px;border:none;border-radius:8px;background:rgba(255,255,255,0.1);color:#fff;font-size:18px;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:all 0.15s;font-family:inherit;}
+.picker-slot .arrow:hover{background:rgba(78,205,196,0.4);}
+.picker-slot .arrow:active{transform:scale(0.9);}
+.ball{width:56px;height:56px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-family:'Orbitron',monospace;font-size:24px;font-weight:900;color:#fff;transition:all 0.2s;cursor:pointer;position:relative;overflow:hidden;}
+.ball::after{content:'';position:absolute;top:6px;left:14px;width:18px;height:9px;background:rgba(255,255,255,0.3);border-radius:50%;transform:rotate(-20deg);}
+.ball.small{width:48px;height:48px;font-size:20px;cursor:default;}
+.ball.small::after{top:5px;left:11px;width:15px;height:7px;}
+.ball.big{width:110px;height:110px;font-size:48px;}
+.ball.big::after{top:12px;left:24px;width:32px;height:16px;}
+.ball.unrevealed{background:rgba(255,255,255,0.08)!important;border:3px dashed rgba(255,255,255,0.2);color:rgba(255,255,255,0.3);font-size:36px;}
+.ball.matched{animation:matchGlow 1s ease-in-out infinite;transform:scale(1.1);}
+.ball.missed{opacity:0.35;}
+.balls-row{display:flex;gap:10px;justify-content:center;flex-wrap:wrap;margin:8px 0;}
+.host-balls-row{display:flex;gap:20px;justify-content:center;flex-wrap:wrap;margin:24px 0;}
+.host-ball-col{text-align:center;}
+.host-ball-col .label{font-size:11px;color:#888;margin-top:4px;}
+.bubbles-wrap{display:flex;flex-wrap:wrap;gap:8px;justify-content:center;padding:12px 8px;min-height:50px;}
+.bubble{border-radius:50px;padding:6px 14px;display:inline-flex;flex-direction:column;align-items:center;gap:1px;color:#fff;font-weight:600;box-shadow:0 3px 10px rgba(0,0,0,0.3);will-change:transform;transform:translateZ(0);}
+.bubble.entrance{animation:floatIn 0.35s ease-out both;}
+.bubble.living{animation:bubbleSway var(--sway-dur,3s) ease-in-out var(--sway-delay,0s) infinite;}
+.bubble .nick{font-size:14px;font-weight:700;max-width:80px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+.bubble .tag{font-size:10px;opacity:0.8;}
+.bubble.won{background:#333!important;opacity:0.4;text-decoration:line-through;animation:none!important;}
+.draw-area{display:flex;flex-direction:column;align-items:center;min-height:200px;margin:16px 0;position:relative;}
+.draw-btn{padding:16px 40px;border-radius:60px;border:none;background:linear-gradient(135deg,#e74c3c,#c0392b);color:#fff;font-size:20px;font-weight:800;cursor:pointer;box-shadow:0 8px 30px rgba(231,76,60,0.4);animation:glow 2s ease-in-out infinite;font-family:inherit;transition:all 0.2s;}
+.draw-btn:hover{filter:brightness(1.1);transform:scale(1.03);}
+.draw-btn.next{background:linear-gradient(135deg,#f39c12,#e67e22);font-size:18px;padding:14px 32px;}
+.stats-row{display:flex;justify-content:center;gap:16px;flex-wrap:wrap;}
+.stat-box{background:rgba(255,255,255,0.05);border-radius:14px;padding:12px 24px;border:1px solid rgba(255,255,255,0.08);min-width:100px;text-align:center;}
+.stat-num{font-size:28px;font-weight:900;color:#4ECDC4;}.stat-label{font-size:12px;color:#888;margin-top:4px;}
+.section-title{color:#fff;font-size:18px;font-weight:700;margin-bottom:12px;text-align:center;}
+.match-card{background:rgba(255,255,255,0.05);border-radius:14px;padding:14px 18px;margin-bottom:8px;display:flex;align-items:center;gap:14px;border:1px solid rgba(255,255,255,0.06);}
+.match-card.top{background:rgba(255,215,0,0.1);border-color:rgba(255,215,0,0.3);}
+.winners-section{margin-top:16px;background:rgba(255,255,255,0.03);border-radius:16px;padding:20px;border:1px solid rgba(255,255,255,0.06);}
+.winner-item{background:rgba(255,215,0,0.06);border-radius:10px;padding:10px 16px;border:1px solid rgba(255,215,0,0.1);margin-bottom:8px;font-size:14px;color:#ddd;}
+.ctrl-bar{display:flex;gap:12px;justify-content:center;margin-top:24px;flex-wrap:wrap;}
+.ctrl-btn{padding:10px 24px;border-radius:10px;border:none;color:#fff;font-size:14px;font-weight:600;cursor:pointer;font-family:inherit;}.ctrl-btn.gray{background:#555;}.ctrl-btn.red{background:#c0392b;}.ctrl-btn:hover{filter:brightness(1.2);}
+.next-btn{margin-top:12px;padding:12px 32px;border-radius:30px;border:none;background:linear-gradient(135deg,#4ECDC4,#44B7A8);color:#fff;font-size:16px;font-weight:700;cursor:pointer;font-family:inherit;}
+.overlay{position:fixed;inset:0;background:rgba(0,0,0,0.7);display:flex;align-items:center;justify-content:center;z-index:10000;}
+.confirm-box{background:#1e1e3a;border-radius:20px;padding:32px 36px;max-width:360px;width:90%;text-align:center;border:1px solid rgba(255,255,255,0.1);}
+.confirm-box .btns{display:flex;gap:12px;justify-content:center;margin-top:20px;}
+.confetti-piece{position:fixed;top:-20px;border-radius:2px;z-index:9999;}
+.conn-status{position:fixed;top:12px;right:12px;padding:6px 14px;border-radius:20px;font-size:12px;font-weight:600;z-index:100;}
+.conn-status.online{background:rgba(46,204,113,0.2);color:#2ecc71;border:1px solid rgba(46,204,113,0.3);}
+.conn-status.offline{background:rgba(231,76,60,0.2);color:#e74c3c;border:1px solid rgba(231,76,60,0.3);}
+.sound-toggle{position:fixed;top:12px;right:100px;padding:6px 14px;border-radius:20px;font-size:12px;font-weight:600;z-index:100;background:rgba(255,255,255,0.08);color:#aaa;border:1px solid rgba(255,255,255,0.15);cursor:pointer;font-family:inherit;}.sound-toggle.muted{color:#e74c3c;}
+.back-btn{position:fixed;top:12px;left:12px;padding:8px 16px;border-radius:10px;border:none;background:rgba(255,255,255,0.08);color:#aaa;font-size:13px;cursor:pointer;font-family:inherit;z-index:100;}.back-btn:hover{background:rgba(255,255,255,0.15);color:#fff;}
+.draw-fx-overlay{position:fixed;inset:0;pointer-events:none;z-index:50;}.draw-fx-overlay.active{animation:spotlightSweep 2s linear infinite;}
+.draw-fx-flash{position:fixed;inset:0;background:#fff;pointer-events:none;z-index:9998;opacity:0;}.draw-fx-flash.bang{animation:flashBang 0.6s ease-out forwards;}
+.host-shaking{animation:screenShake 0.5s ease-in-out;}
+.toast-container{position:fixed;bottom:20px;left:50%;transform:translateX(-50%);z-index:200;display:flex;flex-direction:column;gap:8px;align-items:center;pointer-events:none;}
+.toast{background:rgba(78,205,196,0.9);color:#fff;padding:8px 20px;border-radius:30px;font-size:14px;font-weight:600;animation:toastIn 0.3s ease-out,toastOut 0.3s ease-in 1.8s forwards;box-shadow:0 4px 15px rgba(78,205,196,0.4);}
+.ambient-particles{position:fixed;inset:0;pointer-events:none;z-index:0;overflow:hidden;}
+.ambient-particle{position:absolute;border-radius:50%;opacity:0;animation:ambientFloat linear infinite;}
+.drawing-banner{display:flex;align-items:center;gap:12px;background:rgba(255,215,0,0.1);border-radius:14px;padding:12px 24px;color:#FFD700;font-size:16px;font-weight:600;border:1px solid rgba(255,215,0,0.2);}
+.result-banner{border-radius:16px;padding:20px 24px;width:100%;display:flex;flex-direction:column;align-items:center;gap:6px;margin-top:8px;animation:bounceIn 0.5s ease-out;}
+</style>
+</head>
+<body>
+<div id="connStatus" class="conn-status online" style="display:none;">● 已連線</div>
+<button id="soundToggle" class="sound-toggle" style="display:none;" onclick="toggleSound()">🔊 音效</button>
+
+<!-- LANDING -->
+<div id="landing" class="view" style="align-items:center;justify-content:center;min-height:100vh;">
+  <div><div style="font-size:72px;margin-bottom:8px;">🎰</div><h1>幸運抽獎系統</h1><p style="color:#aaa;font-size:16px;margin-bottom:40px;">請選擇你的身份</p>
+  <div class="role-cards">
+    <div class="role-card player" onclick="go('player')"><div style="font-size:48px;">🎮</div><h2>玩家</h2><p>選擇你的幸運號碼</p></div>
+    <div class="role-card host" onclick="go('host')"><div style="font-size:48px;">🎤</div><h2>主持人</h2><p>公布中獎號碼</p></div>
+  </div></div>
+</div>
+
+<!-- PLAYER -->
+<div id="player" class="view" style="align-items:center;justify-content:center;min-height:100vh;padding:16px;">
+  <button class="back-btn" onclick="go('landing')">← 返回</button>
+  <div id="playerJoin" class="player-card" style="margin:auto;">
+    <div style="font-size:56px;">🎰</div>
+    <h1 style="font-size:28px;font-weight:900;color:#FFD700;">幸運抽獎</h1>
+    <p style="color:#aaa;font-size:14px;">選擇 5 個幸運號碼！(1~9，可重複)</p>
+    <div class="input-group"><label>真實姓名 <span style="color:#e74c3c;">*</span></label><input id="inputName" placeholder="請輸入姓名" onkeydown="if(event.key==='Enter')document.getElementById('inputNick').focus()"></div>
+    <div class="input-group"><label>綽號 <span style="color:#888;font-weight:400;">(選填)</span></label><input id="inputNick" placeholder="留空 = 隨機綽號"></div>
+    <div style="color:#aaa;font-size:14px;margin-top:4px;">🎱 選號</div>
+    <div class="picker-row" id="pickerRow"></div>
+    <div id="joinError" style="color:#e74c3c;font-size:13px;display:none;text-align:center;"></div>
+    <button class="join-btn" onclick="joinGame()" id="joinBtn">🎲 確認參加</button>
+  </div>
+  <div id="playerDash" class="player-card" style="margin:auto;display:none;">
+    <p id="playerWelcome" style="color:#aaa;font-size:14px;"></p>
+    <div style="color:#888;font-size:13px;">你選的號碼</div>
+    <div class="balls-row" id="myBalls"></div>
+    <div style="color:#888;font-size:12px;margin-top:8px;">開獎號碼</div>
+    <div class="balls-row" id="playerRevealed"></div>
+    <div id="playerMatchInfo" style="font-size:15px;color:#4ECDC4;font-weight:600;margin-top:4px;min-height:22px;"></div>
+    <div id="playerDrawStatus"></div>
+  </div>
+</div>
+
+<!-- HOST AUTH -->
+<div id="hostAuth" class="view" style="align-items:center;justify-content:center;min-height:100vh;padding:16px;">
+  <button class="back-btn" onclick="go('landing')">← 返回</button>
+  <div class="player-card" style="margin:auto;"><div style="font-size:56px;">🔐</div><h1 style="font-size:26px;font-weight:900;color:#FFD700;">主持人驗證</h1>
+  <div class="input-group"><label>密碼</label><input id="hostPwInput" type="password" placeholder="請輸入密碼" onkeydown="if(event.key==='Enter')verifyPw()"></div>
+  <div id="hostPwError" style="color:#e74c3c;font-size:13px;display:none;">密碼錯誤</div>
+  <button class="join-btn" style="background:linear-gradient(135deg,#FFD700,#FFA500);" onclick="verifyPw()">🔑 進入</button></div>
+</div>
+
+<!-- HOST -->
+<div id="host" class="view">
+  <button class="back-btn" onclick="go('landing')">← 返回</button>
+  <div class="ambient-particles" id="ambientP"></div>
+  <div style="text-align:center;margin-bottom:24px;">
+    <h1 style="font-size:32px;font-weight:900;color:#FFD700;margin-bottom:16px;">🎰 幸運抽獎主持台</h1>
+    <div class="stats-row">
+      <div class="stat-box"><div class="stat-num" id="sTotal">0</div><div class="stat-label">參加人數</div></div>
+      <div class="stat-box"><div class="stat-num" id="sRounds">0</div><div class="stat-label">已開獎次數</div></div>
+    </div>
+  </div>
+  <div style="margin-bottom:24px;position:relative;z-index:1;">
+    <h2 class="section-title">🎪 參加者 <span id="liveCount" style="font-size:13px;color:#4ECDC4;font-weight:400;"></span></h2>
+    <div class="bubbles-wrap" id="bubblesWrap"><p style="color:#888;text-align:center;width:100%;" id="emptyHint">等待玩家加入中...</p></div>
+  </div>
+  <div class="draw-area" id="drawArea"><button class="draw-btn" onclick="startRound()">🎲 開始抽獎！</button></div>
+  <div id="winnersSection" class="winners-section" style="display:none;"><h2 class="section-title">🏆 歷次開獎</h2><div id="winnersList"></div></div>
+  <div class="ctrl-bar">
+    <button class="ctrl-btn gray" onclick="showConfirm('winners')">🗑️ 清空開獎紀錄</button>
+    <button class="ctrl-btn red" onclick="showConfirm('all')">⚠️ 清空所有資料</button>
+  </div>
+</div>
+
+<!-- OVERLAYS -->
+<div id="confirmOverlay" class="overlay" style="display:none;" onclick="hideConfirm()">
+  <div class="confirm-box" onclick="event.stopPropagation()">
+    <div style="font-size:40px;margin-bottom:12px;" id="cIcon">🗑️</div>
+    <div style="color:#fff;font-size:18px;font-weight:700;margin-bottom:8px;" id="cTitle"></div>
+    <div style="color:#aaa;font-size:14px;margin-bottom:24px;" id="cDesc"></div>
+    <div class="btns"><button class="ctrl-btn gray" onclick="hideConfirm()">取消</button><button class="ctrl-btn red" id="cOk">確定</button></div>
+  </div>
+</div>
+<div id="confettiC"></div>
+<div id="fxOverlay" class="draw-fx-overlay"></div>
+<div id="fxFlash" class="draw-fx-flash"></div>
+<div id="fwC" style="position:fixed;inset:0;pointer-events:none;z-index:9990;"></div>
+<div class="toast-container" id="toastC"></div>
+
+<script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-database-compat.js"></script>
+<script>
+firebase.initializeApp({apiKey:"AIzaSyBiKQRrDKOtdyeEk36m-kjp1o213Was1KU",authDomain:"lotery-86c8a.firebaseapp.com",databaseURL:"https://lotery-86c8a-default-rtdb.firebaseio.com",projectId:"lotery-86c8a",storageBucket:"lotery-86c8a.firebasestorage.app",messagingSenderId:"118832765297",appId:"1:118832765297:web:2c8d12d9e7d26574eebed0"});
+const db=firebase.database(),rP=db.ref('lottery/participants'),rW=db.ref('lottery/winners'),rD=db.ref('lottery/drawState');
+let myData=null,participants={},winners={},currentView='landing',confirmPending=null,hostAuth=false;
+let picks=[1,1,1,1,1],winNums=[null,null,null,null,null],revealed=0,isRevealing=false;
+const PW='04-23894238';
+const BC=['#e74c3c','#e67e22','#f1c40f','#2ecc71','#1abc9c','#3498db','#9b59b6','#e91e63','#00bcd4'];
+function bc(n){return BC[(n-1)%BC.length];}
+const BBC=['#FF6B6B','#4ECDC4','#45B7D1','#96CEB4','#FECA57','#FF9FF3','#54A0FF','#5F27CD','#01CBC6','#F8A5C2','#786FA6','#F19066','#3DC1D3','#E77F67','#CF6A87'];
+const NICKS=['閃電小鯊','幸運星星','飛天貓咪','彩虹獨角獸','酷炫恐龍','快樂水母','旋風薯條','暴走蘑菇','火焰鳳凰','冰霜雪狐','雷電皮卡','流星戰士','泡泡勇者','奶茶大師','珍珠奶龍','太空熊貓','銀河忍者','魔法布丁','超音速兔','鑽石海豚','月光精靈','櫻花武士','極光企鵝','漩渦章魚','蜜糖松鼠','棉花糖俠','爆米花王','巧克力熊','草莓戰神','芒果忍者','西瓜超人','小籠包俠','珍奶勇者','雞排大帝','滷肉飯王','蚵仔煎神','臭豆腐俠','鳳梨酥仙','太陽餅聖','芋圓精靈'];
+
+// ── AUDIO ──
+let actx=null,sndOn=true;
+function ac(){if(!actx)actx=new(window.AudioContext||window.webkitAudioContext)();if(actx.state==='suspended')actx.resume();return actx;}
+const S={
+  tick(p=800){if(!sndOn)return;const c=ac(),o=c.createOscillator(),g=c.createGain();o.type='square';o.frequency.value=p;g.gain.setValueAtTime(0.08,c.currentTime);g.gain.exponentialRampToValueAtTime(0.001,c.currentTime+0.05);o.connect(g).connect(c.destination);o.start();o.stop(c.currentTime+0.05);},
+  drumRoll(d=1.5){if(!sndOn)return;const c=ac(),n=Math.floor(d*20);for(let i=0;i<n;i++){const t=c.currentTime+i*(d/n),o=c.createOscillator(),g=c.createGain();o.type='triangle';o.frequency.value=150+Math.random()*50;g.gain.setValueAtTime(0.03+(i/n)*0.06,t);g.gain.exponentialRampToValueAtTime(0.001,t+0.04);o.connect(g).connect(c.destination);o.start(t);o.stop(t+0.04);}},
+  impact(){if(!sndOn)return;const c=ac(),o=c.createOscillator(),g=c.createGain();o.type='sine';o.frequency.setValueAtTime(80,c.currentTime);o.frequency.exponentialRampToValueAtTime(30,c.currentTime+0.5);g.gain.setValueAtTime(0.3,c.currentTime);g.gain.exponentialRampToValueAtTime(0.001,c.currentTime+0.5);o.connect(g).connect(c.destination);o.start();o.stop(c.currentTime+0.5);const b=c.sampleRate*0.3,buf=c.createBuffer(1,b,c.sampleRate),dd=buf.getChannelData(0);for(let i=0;i<b;i++)dd[i]=(Math.random()*2-1)*Math.pow(1-i/b,3);const ns=c.createBufferSource();ns.buffer=buf;const ng=c.createGain();ng.gain.setValueAtTime(0.15,c.currentTime);ng.gain.exponentialRampToValueAtTime(0.001,c.currentTime+0.3);ns.connect(ng).connect(c.destination);ns.start();ns.stop(c.currentTime+0.3);},
+  fanfare(){if(!sndOn)return;const c=ac();[523,659,784,1047].forEach((f,i)=>{const t=c.currentTime+[0,.15,.3,.5][i],dr=[.15,.15,.2,.6][i];const o=c.createOscillator(),g=c.createGain();o.type='square';o.frequency.value=f;g.gain.setValueAtTime(0.08,t);g.gain.exponentialRampToValueAtTime(0.001,t+dr);o.connect(g).connect(c.destination);o.start(t);o.stop(t+dr);});},
+  sparkle(){if(!sndOn)return;const c=ac();[2093,2637,3136,2093].forEach((f,i)=>{const t=c.currentTime+i*0.08,o=c.createOscillator(),g=c.createGain();o.type='sine';o.frequency.value=f;g.gain.setValueAtTime(0.04,t);g.gain.exponentialRampToValueAtTime(0.001,t+0.2);o.connect(g).connect(c.destination);o.start(t);o.stop(t+0.2);});},
+  pop(){if(!sndOn)return;const c=ac(),b=c.sampleRate*0.15,buf=c.createBuffer(1,b,c.sampleRate),d=buf.getChannelData(0);for(let i=0;i<b;i++)d[i]=(Math.random()*2-1)*Math.pow(1-i/b,5);const s=c.createBufferSource();s.buffer=buf;const g=c.createGain();g.gain.setValueAtTime(0.12,c.currentTime);g.gain.exponentialRampToValueAtTime(0.001,c.currentTime+0.15);const fl=c.createBiquadFilter();fl.type='highpass';fl.frequency.value=1000;s.connect(fl).connect(g).connect(c.destination);s.start();s.stop(c.currentTime+0.15);},
+  ding(){if(!sndOn)return;const c=ac(),o=c.createOscillator(),g=c.createGain();o.type='sine';o.frequency.setValueAtTime(880,c.currentTime);o.frequency.setValueAtTime(1100,c.currentTime+0.08);g.gain.setValueAtTime(0.08,c.currentTime);g.gain.exponentialRampToValueAtTime(0.001,c.currentTime+0.3);o.connect(g).connect(c.destination);o.start();o.stop(c.currentTime+0.3);},
+  click(){if(!sndOn)return;const c=ac(),o=c.createOscillator(),g=c.createGain();o.type='sine';o.frequency.value=600;g.gain.setValueAtTime(0.06,c.currentTime);g.gain.exponentialRampToValueAtTime(0.001,c.currentTime+0.04);o.connect(g).connect(c.destination);o.start();o.stop(c.currentTime+0.04);},
+  ballReveal(){if(!sndOn)return;const c=ac(),o=c.createOscillator(),g=c.createGain();o.type='sine';o.frequency.setValueAtTime(400,c.currentTime);o.frequency.exponentialRampToValueAtTime(900,c.currentTime+0.15);g.gain.setValueAtTime(0.12,c.currentTime);g.gain.exponentialRampToValueAtTime(0.001,c.currentTime+0.4);o.connect(g).connect(c.destination);o.start();o.stop(c.currentTime+0.4);}
+};
+function toggleSound(){sndOn=!sndOn;const b=document.getElementById('soundToggle');b.textContent=sndOn?'🔊 音效':'🔇 靜音';b.classList.toggle('muted',!sndOn);}
+
+// ── ROUTING ──
+function go(v){
+  if(v==='host'&&!hostAuth)v='hostAuth';
+  document.querySelectorAll('.view').forEach(e=>{e.classList.remove('active');e.style.display='none';});
+  const el=document.getElementById(v);if(el){el.classList.add('active');el.style.display=v==='host'?'block':'flex';}
+  currentView=v==='hostAuth'?'host':v;
+  document.getElementById('connStatus').style.display=v==='landing'?'none':'block';
+  document.getElementById('soundToggle').style.display=v==='landing'?'none':'block';
+  window.location.hash=v==='landing'?'':(v==='hostAuth'?'host':v);
+  if(v==='hostAuth')setTimeout(()=>document.getElementById('hostPwInput')?.focus(),100);
+  if(v==='host'){if(!document.getElementById('ambientP')?.children.length)initAmbient();if(initDone)renderBubbles();}
+}
+function verifyPw(){const i=document.getElementById('hostPwInput'),e=document.getElementById('hostPwError');if(i.value===PW){hostAuth=true;e.style.display='none';i.value='';go('host');}else{e.style.display='block';i.value='';i.focus();}}
+window.addEventListener('load',()=>{const h=window.location.hash.replace('#','');if(h==='player'||h==='host')go(h);else go('landing');initPicker();});
+db.ref('.info/connected').on('value',s=>{const e=document.getElementById('connStatus');if(s.val()){e.className='conn-status online';e.textContent='● 已連線';}else{e.className='conn-status offline';e.textContent='● 離線中';}});
+
+// ── PICKER ──
+function initPicker(){const r=document.getElementById('pickerRow');if(!r)return;r.innerHTML='';for(let i=0;i<5;i++){picks[i]=Math.floor(Math.random()*9)+1;const s=document.createElement('div');s.className='picker-slot';s.innerHTML=`<button class="arrow" onclick="chg(${i},1)">▲</button><div class="ball" id="pk${i}" style="background:${bc(picks[i])}" onclick="chg(${i},1)">${picks[i]}</div><button class="arrow" onclick="chg(${i},-1)">▼</button>`;r.appendChild(s);}}
+function chg(i,d){picks[i]+=d;if(picks[i]>9)picks[i]=1;if(picks[i]<1)picks[i]=9;const b=document.getElementById('pk'+i);b.textContent=picks[i];b.style.background=bc(picks[i]);b.style.transform='scale(1.2)';setTimeout(()=>b.style.transform='',150);S.click();}
+
+// ── JOIN ──
+async function joinGame(){
+  const name=document.getElementById('inputName').value.trim();let nick=document.getElementById('inputNick').value.trim();
+  const err=document.getElementById('joinError'),btn=document.getElementById('joinBtn');
+  if(!name){err.textContent='⚠️ 請輸入姓名';err.style.display='block';return;}
+  btn.disabled=true;btn.textContent='加入中...';err.style.display='none';
+  const snap=await rP.once('value');const ex=snap.val()||{};const list=Object.values(ex);
+  if(list.some(p=>p.name===name)){err.textContent='⚠️ 這個名字已經有人使用了';err.style.display='block';btn.disabled=false;btn.textContent='🎲 確認參加';return;}
+  if(!nick){const used=new Set(list.map(p=>p.nickname));const av=NICKS.filter(n=>!used.has(n));nick=av.length?av[Math.floor(Math.random()*av.length)]:NICKS[Math.floor(Math.random()*NICKS.length)]+Math.floor(Math.random()*99);}
+  const entry={name,nickname:nick,numbers:[...picks],joinedAt:Date.now()};const ref=rP.push();await ref.set(entry);
+  myData={...entry,key:ref.key};S.ding();
+  document.getElementById('playerJoin').style.display='none';document.getElementById('playerDash').style.display='flex';
+  document.getElementById('playerWelcome').textContent=`歡迎，${nick}！`;
+  renderMyBalls();renderPRevealed([null,null,null,null,null],0);
+}
+function renderMyBalls(matched){const el=document.getElementById('myBalls');el.innerHTML=myData.numbers.map((n,i)=>{const cls=matched?(matched.includes(i)?'ball matched':'ball missed'):'ball';return`<div class="${cls}" style="background:${bc(n)}">${n}</div>`;}).join('');}
+function renderPRevealed(nums,cnt){
+  const el=document.getElementById('playerRevealed');
+  if(!myData){el.innerHTML=nums.map((n,i)=>i<cnt&&n!=null?`<div class="ball small" style="background:${bc(n)};animation:ballPop 0.4s ease-out;">${n}</div>`:`<div class="ball small unrevealed">?</div>`).join('');return;}
+  el.innerHTML=nums.map((n,i)=>{
+    if(i<cnt&&n!=null){
+      const ok=myData.numbers[i]===n;
+      const border=ok?'3px solid #2ecc71':'3px solid #e74c3c';
+      return`<div class="ball small" style="background:${bc(n)};border:${border};animation:ballPop 0.4s ease-out;">${n}</div>`;
+    }
+    return`<div class="ball small unrevealed">?</div>`;
+  }).join('');
+}
+
+// ── PLAYER DRAW LISTENER ──
+rD.on('value',snap=>{
+  const s=snap.val();if(!s||!myData)return;
+  const st=document.getElementById('playerDrawStatus'),mi=document.getElementById('playerMatchInfo');if(!st)return;
+  if(s.phase==='drawing'){
+    const nums=s.winningNumbers||[null,null,null,null,null],rc=s.revealedCount||0;
+    renderPRevealed(nums,rc);
+    // Show per-position match status for revealed balls
+    const matched=posMatch(myData.numbers,nums,rc);
+    mi.textContent=rc>0?`已開 ${rc}/5 球，${matched} 個位置吻合`:'';
+    if(rc===0){st.innerHTML='<div class="drawing-banner"><span style="animation:pulse 1s infinite;font-size:24px;">🎰</span>抽獎進行中...</div>';renderMyBalls();}
+    else{st.innerHTML='';renderMyBallsPos(myData.numbers,nums,rc);}
+  } else if(s.phase==='revealed'){
+    const nums=s.winningNumbers||[];renderPRevealed(nums,5);
+    const mc=posMatch(myData.numbers,nums,5);
+    const isWinner=mc===5;
+    mi.textContent=isWinner?'🎉 全部吻合！你中獎了！':`吻合 ${mc} / 5 個位置`;
+    renderMyBallsPos(myData.numbers,nums,5);
+    if(isWinner){S.fanfare();setTimeout(()=>S.sparkle(),600);spawnConfetti();}
+    else if(mc>=4){S.sparkle();}else{S.impact();}
+    if(s.winners?.length){
+      const isMe=s.winners.some(t=>t.name===myData.name);
+      st.innerHTML=`<div class="result-banner" style="background:${isMe?'linear-gradient(135deg,#FFD700,#FFA500)':'rgba(255,255,255,0.05)'};border:${isMe?'2px solid #FFD700':'1px solid rgba(255,255,255,0.1)'};">
+        ${isMe?'<div style="font-size:40px;">🏆</div><div style="font-size:22px;font-weight:800;color:#1a1a2e;">恭喜中獎！！！</div>':`<div style="font-size:28px;">📢</div><div style="font-size:15px;color:#ccc;">🏆 中獎者：${s.winners.map(p=>p.nick).join('、')}</div>`}
+        <div style="font-size:14px;color:${isMe?'#1a1a2e':'#888'};margin-top:4px;">中獎號碼：${nums.join(' - ')}</div>
+        ${s.almostPlayer?`<div style="font-size:13px;color:#e67e22;margin-top:6px;">😱 ${esc(s.almostPlayer)} ${esc(s.almostMsg||'差一號！')}</div>`:''}
+      </div>`;
+    } else {
+      st.innerHTML=`<div class="result-banner" style="background:rgba(255,255,255,0.05);border:1px solid rgba(255,255,255,0.1);">
+        <div style="font-size:28px;">😢</div><div style="font-size:15px;color:#ccc;">本輪無人中獎</div>
+        <div style="font-size:14px;color:#888;margin-top:4px;">中獎號碼：${nums.join(' - ')}</div>
+        ${s.almostPlayer?`<div style="font-size:13px;color:#e67e22;margin-top:6px;">😱 ${esc(s.almostPlayer)} ${esc(s.almostMsg||'差一號！')}</div>`:''}
+      </div>`;
+    }
+  } else{st.innerHTML='';mi.textContent='';renderPRevealed([null,null,null,null,null],0);renderMyBalls();}
+});
+// Position-based exact match (order matters)
+function posMatch(pn,wn,count){let c=0;for(let i=0;i<count;i++){if(pn[i]===wn[i])c++;}return c;}
+function renderMyBallsPos(pn,wn,count){
+  const el=document.getElementById('myBalls');
+  el.innerHTML=pn.map((n,i)=>{
+    if(i<count){const ok=n===wn[i];return`<div class="ball ${ok?'matched':'missed'}" style="background:${bc(n)}">${n}</div>`;}
+    return`<div class="ball" style="background:${bc(n)}">${n}</div>`;
+  }).join('');
+}
+
+// ── HOST PARTICIPANTS ──
+let pKeys=new Set(),initDone=false,wonNames=new Set();
+rP.once('value',snap=>{
+  participants=snap.val()||{};pKeys=new Set(Object.keys(participants));initDone=true;
+  if(currentView==='host')renderBubbles();
+  rP.on('child_added',cs=>{if(!initDone)return;const k=cs.key;if(pKeys.has(k))return;pKeys.add(k);participants[k]=cs.val();if(currentView==='host'){addBubble(k,cs.val());updateStats();showToast(cs.val().nickname);S.click();}});
+  rP.on('child_removed',cs=>{pKeys.delete(cs.key);delete participants[cs.key];if(currentView==='host'){const e=document.getElementById('b-'+cs.key);if(e){e.style.opacity='0';setTimeout(()=>e.remove(),300);}updateStats();}});
+});
+rW.on('value',snap=>{
+  winners=snap.val()||{};
+  // Rebuild wonNames from all past winners
+  wonNames=new Set();
+  Object.values(winners).forEach(w=>{(w.winnerNames||[]).forEach(n=>wonNames.add(n));});
+  if(currentView==='host'){renderWinners();updateStats();updateWonBubbles();}
+});
+
+function updateWonBubbles(){
+  Object.entries(participants).forEach(([k,p])=>{
+    const el=document.getElementById('b-'+k);if(!el)return;
+    if(wonNames.has(p.name)){el.classList.add('won');el.classList.remove('living');}
+    else{el.classList.remove('won');}
+  });
+}
+function updateStats(){const n=Object.keys(participants).length;const eligible=Object.values(participants).filter(p=>!wonNames.has(p.name)).length;document.getElementById('sTotal').textContent=n;document.getElementById('sRounds').textContent=Object.keys(winners).length;const lc=document.getElementById('liveCount');if(lc)lc.textContent=n?`(${n}人，${eligible}人可抽)`:'';}
+function renderBubbles(){
+  const w=document.getElementById('bubblesWrap'),pts=Object.entries(participants);updateStats();
+  if(!pts.length){w.innerHTML='<p style="color:#888;text-align:center;width:100%;" id="emptyHint">等待玩家加入中...</p>';return;}
+  const f=document.createDocumentFragment();pts.forEach(([k,p],i)=>f.appendChild(mkBubble(k,p,i,false)));w.innerHTML='';w.appendChild(f);
+  requestAnimationFrame(()=>{w.querySelectorAll('.bubble').forEach((b,i)=>{setTimeout(()=>{b.classList.add('entrance');setTimeout(()=>{b.classList.remove('entrance');if(!b.classList.contains('won'))b.classList.add('living');},400);},Math.floor(i/15)*120+(i%15)*30);});});
+}
+function mkBubble(k,p,i,anim){const d=document.createElement('div');d.id='b-'+k;const isWon=wonNames.has(p.name);d.className='bubble'+(anim?' entrance':'')+(isWon?' won':'');if(!isWon)d.style.background=BBC[i%BBC.length];d.style.setProperty('--sway-dur',(2.5+Math.random()*2)+'s');d.style.setProperty('--sway-delay',(Math.random()*2)+'s');d.innerHTML=`<span class="nick">${esc(p.nickname)}</span><span class="tag">${isWon?'🏆 已得獎':(p.numbers||[]).join('-')}</span>`;return d;}
+function addBubble(k,p){const w=document.getElementById('bubblesWrap');const h=document.getElementById('emptyHint');if(h)h.remove();const d=mkBubble(k,p,Object.keys(participants).length,true);w.appendChild(d);setTimeout(()=>{d.classList.remove('entrance');d.classList.add('living');},400);}
+function showToast(n){const c=document.getElementById('toastC');if(!c)return;const t=document.createElement('div');t.className='toast';t.textContent=`🎉 ${n} 加入了！`;c.appendChild(t);setTimeout(()=>t.remove(),2200);}
+function renderWinners(){const ws=Object.values(winners),sec=document.getElementById('winnersSection'),list=document.getElementById('winnersList');if(!ws.length){sec.style.display='none';return;}sec.style.display='block';list.innerHTML=ws.map((w,i)=>{const wnames=(w.winners||[]).join('、');return`<div class="winner-item"><strong style="color:#FFD700;">第${i+1}輪</strong> 🎱 ${(w.winningNumbers||[]).join('-')} → ${wnames?`🏆 ${wnames}`:'無人中獎'}${w.almostPlayer?` <span style="color:#e67e22;">（😱 ${esc(w.almostPlayer)} ${esc(w.almostMsg||'差一號')}）</span>`:''}</div>`;}).join('');}
+
+// ── HOST DRAW ──
+// Pick winning numbers FROM a random player's numbers
+// Each ball independently has 10% chance to ±1
+let targetPlayer=null, originalNums=null, twistedIndex=-1;
+
+function startRound(){
+  const pts=Object.values(participants);
+  const eligible=pts.filter(p=>!wonNames.has(p.name));
+  if(eligible.length===0){alert('沒有可抽獎的玩家了！（所有人都已得獎或無人加入）');return;}
+  S.click();
+
+  // Pick a random ELIGIBLE player as the base
+  targetPlayer=eligible[Math.floor(Math.random()*eligible.length)];
+  winNums=[...targetPlayer.numbers];
+  originalNums=[...winNums];
+  twistedIndex=-1;
+
+  // Each ball has 10% chance to ±1 (only twist ONE ball max for drama)
+  const candidates=[];
+  for(let i=0;i<5;i++){if(Math.random()<0.10)candidates.push(i);}
+  if(candidates.length>0){
+    // Pick one random candidate to twist
+    const ti=candidates[Math.floor(Math.random()*candidates.length)];
+    let n=winNums[ti], delta;
+    if(n===1) delta=1;
+    else if(n===9) delta=-1;
+    else delta=Math.random()<0.5?1:-1;
+    winNums[ti]=n+delta;
+    twistedIndex=ti;
+  }
+
+  revealed=0;isRevealing=false;
+  rD.set({phase:'drawing',winningNumbers:[null,null,null,null,null],revealedCount:0,timestamp:Date.now()});
+  document.getElementById('fxOverlay').classList.add('active');
+  renderDrawUI();
+  autoRevealAll();
+}
+
+function renderDrawUI(){
+  const a=document.getElementById('drawArea');
+  let h='<div class="host-balls-row">';
+  for(let i=0;i<5;i++){
+    if(i<revealed){h+=`<div class="host-ball-col"><div class="ball big" style="background:${bc(winNums[i])};">${winNums[i]}</div><div class="label">第${i+1}球</div></div>`;}
+    else{h+=`<div class="host-ball-col"><div class="ball big unrevealed" id="hb${i}">?</div><div class="label">第${i+1}球</div></div>`;}
+  }
+  h+='</div>';
+  h+='<div style="color:#f1c40f;font-size:16px;font-weight:600;margin-top:12px;animation:pulse 1s infinite;">🎰 開獎中...</div>';
+  a.innerHTML=h;
+}
+
+function autoRevealAll(){
+  // Faster: Ball 1-4: 1.6s each, Ball 5: 2.8s (longer for drama)
+  const delays=[0, 1600, 3200, 4800, 7000];
+  for(let i=0;i<5;i++) setTimeout(()=>revealBall(i),delays[i]);
+}
+
+function revealBall(idx){
+  const n=winNums[idx];
+  const ball=document.getElementById('hb'+idx);
+  if(!ball)return;
+  const isFifth=idx===4;
+  const spinDuration=isFifth?2000:1000;
+
+  S.drumRoll(spinDuration/1000);
+  ball.classList.remove('unrevealed');
+  ball.style.background='rgba(255,255,255,0.15)';
+  ball.style.border='3px solid rgba(255,255,255,0.3)';
+  ball.style.animation='numberGlitch 0.1s infinite,slotGlow 0.2s infinite';
+
+  // Add energy ring around spinning ball
+  const ring=document.createElement('div');
+  ring.style.cssText=`position:absolute;left:50%;top:50%;width:130px;height:130px;margin:-65px 0 0 -65px;border:3px solid ${isFifth?'#FFD700':'#4ECDC4'};border-radius:50%;animation:energyRing ${isFifth?'0.8':'1.2'}s linear infinite;pointer-events:none;z-index:2;`;
+  const ring2=document.createElement('div');
+  ring2.style.cssText=`position:absolute;left:50%;top:50%;width:145px;height:145px;margin:-72px 0 0 -72px;border:2px solid ${isFifth?'#e74c3c':'#9b59b6'};border-radius:50%;animation:energyRing2 ${isFifth?'0.6':'1'}s linear infinite;pointer-events:none;z-index:2;`;
+  const col=ball.parentElement;
+  col.style.position='relative';
+  col.appendChild(ring);col.appendChild(ring2);
+
+  // Emit sparks during spin
+  const sparkInterval=setInterval(()=>{
+    const spark=document.createElement('div');
+    const angle=Math.random()*Math.PI*2, dist=60+Math.random()*25;
+    const sx=Math.cos(angle)*dist, sy=Math.sin(angle)*dist;
+    const sclr=isFifth?['#FFD700','#FF4444','#FFA500']:['#4ECDC4','#44FF44','#4488FF'];
+    spark.style.cssText=`position:absolute;left:50%;top:50%;width:4px;height:4px;margin:-2px;background:${sclr[Math.floor(Math.random()*3)]};border-radius:50%;pointer-events:none;z-index:3;box-shadow:0 0 6px currentColor;`;
+    col.appendChild(spark);
+    spark.animate([{transform:'translate(0,0)',opacity:1},{transform:`translate(${sx}px,${sy}px)`,opacity:0}],{duration:400,easing:'ease-out'});
+    setTimeout(()=>spark.remove(),400);
+  },60);
+
+  if(isFifth){
+    ball.style.boxShadow='0 0 30px rgba(255,215,0,0.5)';
+    // Slow down in last 600ms
+    let si=setInterval(()=>{ball.textContent=Math.floor(Math.random()*9)+1;S.tick(500+Math.random()*400);},80);
+    setTimeout(()=>{
+      clearInterval(si);
+      let slowIdx=0;const cands=[...Array(9)].map((_,i)=>i+1).sort(()=>Math.random()-0.5);
+      si=setInterval(()=>{ball.textContent=cands[slowIdx++%cands.length];S.tick(300);},180);
+      setTimeout(()=>{clearInterval(si);clearInterval(sparkInterval);ring.remove();ring2.remove();doReveal(ball,n,idx);},600);
+    },spinDuration-600);
+  } else {
+    let si=setInterval(()=>{ball.textContent=Math.floor(Math.random()*9)+1;S.tick(500+Math.random()*400);},80);
+    setTimeout(()=>{clearInterval(si);clearInterval(sparkInterval);ring.remove();ring2.remove();doReveal(ball,n,idx);},spinDuration);
+  }
+}
+
+function doReveal(ball,n,idx){
+  ball.textContent=n;
+  ball.style.background=bc(n);
+  ball.style.border='none';
+  ball.style.boxShadow='';
+  ball.style.animation='ballPop 0.4s ease-out';
+
+  // Explosion particles on reveal
+  const col=ball.parentElement;
+  for(let i=0;i<12;i++){
+    const p=document.createElement('div');
+    const angle=(Math.PI*2/12)*i, dist=65+Math.random()*50;
+    const tx=Math.cos(angle)*dist,ty=Math.sin(angle)*dist;
+    p.style.cssText=`position:absolute;left:50%;top:50%;width:5px;height:5px;margin:-2.5px;background:${bc(n)};border-radius:50%;pointer-events:none;z-index:3;box-shadow:0 0 8px ${bc(n)};`;
+    col.appendChild(p);
+    p.animate([{transform:'translate(0,0) scale(1.5)',opacity:1},{transform:`translate(${tx}px,${ty}px) scale(0)`,opacity:0}],{duration:500,easing:'ease-out'});
+    setTimeout(()=>p.remove(),500);
+  }
+
+  S.ballReveal();S.impact();triggerFlash();triggerShake();
+  revealed=idx+1;
+  rD.update({winningNumbers:[...winNums],revealedCount:revealed});
+  if(idx===4) setTimeout(()=>finishRound(),600);
+}
+
+function finishRound(){
+  document.getElementById('fxOverlay').classList.remove('active');
+
+  // Find winners: exact position match, ALL 5 must match, EXCLUDE previous winners
+  const pts=Object.values(participants);
+  const winnerList=pts.filter(p=>{
+    if(wonNames.has(p.name)) return false; // already won before
+    const pn=p.numbers||[];
+    return pn.length===5 && pn[0]===winNums[0] && pn[1]===winNums[1] && pn[2]===winNums[2] && pn[3]===winNums[3] && pn[4]===winNums[4];
+  });
+
+  // Find "almost" player - if twisted, the target player was off by 1 on that ball
+  let almostPlayer=null, almostMsg='';
+  if(twistedIndex>=0 && !wonNames.has(targetPlayer.name)){
+    // targetPlayer had all balls match except the twisted one
+    almostPlayer=targetPlayer.nickname;
+    almostMsg=`只差第${twistedIndex+1}球一號就中獎了！（原本是 ${originalNums[twistedIndex]}，開出 ${winNums[twistedIndex]}）`;
+  } else {
+    // Check if anyone differs by exactly 1 ball with ±1 difference
+    const almosts=pts.filter(p=>{
+      if(wonNames.has(p.name))return false;
+      const pn=p.numbers||[];if(pn.length!==5)return false;
+      let diffCount=0, diffIdx=-1;
+      for(let i=0;i<5;i++){if(pn[i]!==winNums[i]){diffCount++;diffIdx=i;}}
+      return diffCount===1 && Math.abs(pn[diffIdx]-winNums[diffIdx])===1;
+    });
+    if(almosts.length>0){
+      almostPlayer=almosts[0].nickname;
+      const pn=almosts[0].numbers||[];
+      let di=0;for(let i=0;i<5;i++)if(pn[i]!==winNums[i])di=i;
+      almostMsg=`只差第${di+1}球一號就中獎了！`;
+    }
+  }
+
+  const hasWinner=winnerList.length>0;
+  if(hasWinner){spawnConfetti();S.fanfare();setTimeout(()=>S.sparkle(),700);
+    const w=window.innerWidth,h=window.innerHeight;for(let i=0;i<8;i++)setTimeout(()=>spawnFW(w*.1+Math.random()*w*.8,h*.2+Math.random()*h*.5),i*350);
+  } else { S.impact(); }
+
+  // Save to winners log (include winnerNames for tracking)
+  rW.push().set({winningNumbers:[...winNums],winners:winnerList.map(p=>p.nickname),winnerNames:winnerList.map(p=>p.name),almostPlayer:almostPlayer||null,almostMsg:almostMsg||null,twistedIndex,timestamp:Date.now()});
+
+  // Notify players via Firebase
+  rD.set({phase:'revealed',winningNumbers:[...winNums],revealedCount:5,
+    winners:winnerList.map(p=>({name:p.name,nick:p.nickname})),
+    almostPlayer:almostPlayer||null,almostMsg:almostMsg||null,
+    timestamp:Date.now()});
+
+  // Build host results UI
+  const a=document.getElementById('drawArea');
+  let bh='<div class="host-balls-row">';
+  winNums.forEach((n,i)=>{bh+=`<div class="host-ball-col"><div class="ball big" style="background:${bc(n)};">${n}</div><div class="label">第${i+1}球</div></div>`;});
+  bh+='</div>';
+
+  let rh='<div style="max-width:600px;margin:16px auto;text-align:center;">';
+  if(hasWinner){
+    rh+=`<div style="font-size:48px;margin:16px 0;">🏆🎉🏆</div>`;
+    rh+=`<h2 style="color:#FFD700;font-size:24px;font-weight:900;">恭喜中獎！</h2>`;
+    winnerList.forEach(w=>{rh+=`<div class="match-card top" style="justify-content:center;"><span style="font-size:16px;">🏆 ${esc(w.nickname)}（${esc(w.name)}）<br><small style="color:#aaa;">${(w.numbers||[]).join(' - ')}</small></span></div>`;});
+  } else {
+    rh+=`<div style="font-size:40px;margin:16px 0;">😢</div>`;
+    rh+=`<h2 style="color:#888;font-size:20px;">本輪無人中獎</h2>`;
+  }
+  if(almostPlayer){
+    rh+=`<div style="background:rgba(230,126,34,0.15);border:1px solid rgba(230,126,34,0.3);border-radius:12px;padding:14px;margin-top:12px;">`;
+    rh+=`<div style="font-size:24px;">😱</div>`;
+    rh+=`<div style="color:#e67e22;font-size:15px;font-weight:600;">${esc(almostPlayer)} ${esc(almostMsg)}</div>`;
+    rh+=`</div>`;
+  }
+
+  // Show match ranking (mark previous winners)
+  rh+=`<h3 class="section-title" style="margin-top:20px;font-size:16px;">📊 各位吻合情況</h3>`;
+  const results=pts.map(p=>{const pn=p.numbers||[];let mc=0;for(let i=0;i<5;i++)if(pn[i]===winNums[i])mc++;return{name:p.name,nick:p.nickname,nums:pn,mc,prevWon:wonNames.has(p.name)};}).sort((a,b)=>b.mc-a.mc);
+  results.slice(0,15).forEach((r,i)=>{const isW=r.mc===5&&!r.prevWon;const color=r.mc===5?'#2ecc71':r.mc>=4?'#f1c40f':r.mc>=3?'#e67e22':r.mc>=2?'#3498db':'#888';
+    const wonTag=r.prevWon?'<span style="color:#888;font-size:11px;"> (已得獎)</span>':'';
+    rh+=`<div class="match-card${isW?' top':''}" style="text-align:left;${r.prevWon?'opacity:0.5;':''}"><span style="color:#FFD700;font-weight:700;min-width:40px;">${isW?'🏆':''} #${i+1}</span><span style="flex:1;font-size:14px;">${esc(r.nick)}（${esc(r.name)}）${wonTag}<br><small style="color:#888;">${r.nums.map((n,j)=>n===winNums[j]?`<span style="color:#2ecc71;font-weight:700;">${n}</span>`:`<span style="color:#e74c3c;">${n}</span>`).join(' - ')}</small></span><span style="font-size:14px;font-weight:700;padding:4px 12px;border-radius:20px;background:${color}22;color:${color};">${r.mc}/5</span></div>`;});
+  if(results.length>15)rh+=`<p style="color:#888;font-size:13px;margin-top:8px;">...還有 ${results.length-15} 位</p>`;
+  rh+='</div>';
+
+  a.innerHTML=bh+rh+`<button class="next-btn" onclick="resetRound()" style="margin-top:16px;">✨ 下一輪</button>`;
+
+  if(hasWinner){const w2=window.innerWidth,h2=window.innerHeight;setTimeout(()=>{for(let i=0;i<3;i++)setTimeout(()=>spawnFW(w2*.2+Math.random()*w2*.6,h2*.4+Math.random()*h2*.3),i*300);},1200);}
+}
+
+function resetRound(){revealed=0;winNums=[null,null,null,null,null];isRevealing=false;targetPlayer=null;twistedIndex=-1;originalNums=null;
+  document.getElementById('fxOverlay').classList.remove('active');document.getElementById('fwC').innerHTML='';
+  rD.set({phase:'idle',timestamp:Date.now()});document.getElementById('drawArea').innerHTML='<button class="draw-btn" onclick="startRound()">🎲 開始抽獎！</button>';}
+
+// ── CONFIRM ──
+function showConfirm(a){confirmPending=a;document.getElementById('confirmOverlay').style.display='flex';document.getElementById('cIcon').textContent=a==='winners'?'🗑️':'⚠️';document.getElementById('cTitle').textContent=a==='winners'?'清空開獎紀錄？':'清空所有資料？';document.getElementById('cDesc').textContent=a==='winners'?'這會清除開獎歷史。':'清除所有參加者和紀錄！';document.getElementById('cOk').style.background=a==='winners'?'#e67e22':'#c0392b';document.getElementById('cOk').onclick=execConfirm;}
+function hideConfirm(){document.getElementById('confirmOverlay').style.display='none';confirmPending=null;}
+async function execConfirm(){
+  if(confirmPending==='winners'){await rW.remove();await rD.set({phase:'idle'});wonNames=new Set();resetRound();updateWonBubbles();renderBubbles();}
+  else if(confirmPending==='all'){await rP.remove();await rW.remove();await rD.set({phase:'idle'});participants={};winners={};pKeys=new Set();wonNames=new Set();resetRound();renderBubbles();}
+  hideConfirm();
+}
+
+// ── FX ──
+function triggerFlash(){const f=document.getElementById('fxFlash');f.className='draw-fx-flash bang';setTimeout(()=>f.className='draw-fx-flash',700);}
+function triggerShake(){const h=document.getElementById('host');h.classList.add('host-shaking');setTimeout(()=>h.classList.remove('host-shaking'),500);}
+function spawnFW(x,y){const c=document.getElementById('fwC'),cls=['#FFD700','#FF4444','#44FF44','#4488FF','#FF44FF','#00FFFF'];const tr=document.createElement('div');tr.style.cssText=`position:absolute;left:${x}px;bottom:0;width:3px;height:3px;background:#FFD700;border-radius:50%;box-shadow:0 0 6px #FFD700;`;c.appendChild(tr);tr.animate([{transform:'translateY(0)',opacity:1},{transform:`translateY(-${y}px)`,opacity:1}],{duration:500,easing:'ease-out',fill:'forwards'});setTimeout(()=>{tr.remove();S.pop();for(let i=0;i<30;i++){const p=document.createElement('div'),a=(Math.PI*2/30)*i,d=40+Math.random()*80,tx=Math.cos(a)*d,ty=Math.sin(a)*d,cl=cls[Math.floor(Math.random()*cls.length)],sz=2+Math.random()*3;p.style.cssText=`position:absolute;left:${x}px;top:calc(100% - ${y}px);width:${sz}px;height:${sz}px;background:${cl};border-radius:50%;box-shadow:0 0 ${sz*3}px ${cl};`;c.appendChild(p);p.animate([{transform:'translate(0,0) scale(1)',opacity:1},{transform:`translate(${tx}px,${ty+30}px) scale(0)`,opacity:0}],{duration:800+Math.random()*600,easing:'ease-out'});setTimeout(()=>p.remove(),1500);}},480);}
+function spawnConfetti(){const c=document.getElementById('confettiC'),cls=['#FFD700','#FF4444','#44FF44','#4488FF','#FF44FF','#FF8800','#00FFFF','#fff'];let h='';for(let i=0;i<80;i++){h+=`<div class="confetti-piece" style="left:${Math.random()*100}%;width:${5+Math.random()*8}px;height:${3+Math.random()*5}px;background:${cls[i%cls.length]};animation:confettiFall ${2.5+Math.random()*2.5}s ease-in ${Math.random()*2.5}s both;transform:rotate(${Math.random()*360}deg);"></div>`;}c.innerHTML=h;setTimeout(()=>c.innerHTML='',7000);}
+function initAmbient(){const c=document.getElementById('ambientP');if(!c)return;const cls=['rgba(78,205,196,0.3)','rgba(255,215,0,0.2)','rgba(255,107,107,0.2)'];for(let i=0;i<25;i++){const p=document.createElement('div');p.className='ambient-particle';const sz=2+Math.random()*4,d=8+Math.random()*12;p.style.cssText=`left:${Math.random()*100}%;width:${sz}px;height:${sz}px;background:${cls[i%cls.length]};box-shadow:0 0 ${sz*2}px ${cls[i%cls.length]};animation-duration:${d}s;animation-delay:-${Math.random()*d}s;`;c.appendChild(p);}}
+function esc(s){const d=document.createElement('div');d.textContent=s;return d.innerHTML;}
+</script>
+</body>
+</html>
